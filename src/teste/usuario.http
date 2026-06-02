@@ -9,10 +9,10 @@ POST http://localhost:3000/usuario/
 Content-Type: application/json
 
 {
- "nome": "bryan Lucas",
- "email" : "bryan@teste.com",
- "telefone":"22222222",
- "senha": "2234"
+ "nome": "nicolindo",
+ "email" : "nicolas@teste.com",
+ "telefone":"2222221",
+ "senha": "1234"
 }
 
 ###
@@ -24,17 +24,16 @@ Accept: application/json
 ###
 
 ### Atualizar Usuario
-PUT http://localhost:3000/usuario/5
+PUT http://localhost:3000/usuario/2
 Content-Type: application/json
 
 {
- "nome": "2222222",
- "email" : "b222222",
+ "nome": "bryan Lucas",
+ "email" : "bryan_@",
  "telefone":"22222222",
- "senha": "222222"
+ "senha": "1234"
 }
-
 ###
 
 ### Deletar Usuario
-DELETE http://localhost:3000/usuario/14
+DELETE http://localhost:3000/usuario/1
