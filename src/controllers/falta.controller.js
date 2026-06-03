@@ -8,7 +8,7 @@ exports.importarFaltas = async (req, res) => {
     const arquivoBase = req.files['base'][0];
 
     // ===============================
-    // LER PLANILHAS
+    // LER PLANILHASs
     // ===============================
 
     const workbookFaltas = xlsx.readFile(arquivoFaltas.path);
