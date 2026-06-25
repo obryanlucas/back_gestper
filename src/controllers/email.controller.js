@@ -20,27 +20,30 @@ async function sendEmailToStudents(req, res) {
       });
     }
 
-    const accessToken = await oauth2Client.getAccessToken();
+    const accessTokenResponse = await oauth2Client.getAccessToken();
+
+    const accessToken =
+      typeof accessTokenResponse === "string"
+        ? accessTokenResponse
+        : accessTokenResponse?.token;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         type: "OAuth2",
-        user: process.env.EMAIL_USER,
+        user: process.env.USER_EMAIL,
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-        accessToken: accessToken.token,
+        accessToken,
       },
     });
-
-    console.log(transporter);
 
     for (const student of students) {
       if (!student.email) continue;
 
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: process.env.USER_EMAIL,
         to: student.email,
         subject: "Aviso importante",
         text: `Olá ${student.nome}, este é um email automático.`,
@@ -56,8 +59,11 @@ async function sendEmailToStudents(req, res) {
 
     return res.status(500).json({
       message: "Erro ao enviar emails",
+      error: error.message,
     });
   }
 }
 
-module.exports = { sendEmailToStudents };
+module.exports = {
+  sendEmailToStudents,
+};
