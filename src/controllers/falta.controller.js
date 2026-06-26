@@ -79,12 +79,18 @@ exports.importarFaltas = async (req, res) => {
       dados: alunosSalvos
     });
 
-  } catch (error) {
-    console.log(error);
+} catch (error) {
+  console.error("========== ERRO COMPLETO ==========");
+  console.error(error);
+  console.error("Mensagem:", error.message);
+  console.error("Código:", error.code);
+  console.error("SQL:", error.sql);
+  console.error("===================================");
 
-    res.status(500).json({
-      sucesso: false,
-      erro: error.message
-    });
-  }
+  return res.status(500).json({
+    sucesso: false,
+    erro: error.message,
+    codigo: error.code
+  });
+}
 };
