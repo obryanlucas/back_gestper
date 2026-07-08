@@ -52,7 +52,7 @@ async function sendEmailToStudents(req, res) {
               </div>
             </div>
           </div>
-        `,
+        `,   
       });
     }
 
