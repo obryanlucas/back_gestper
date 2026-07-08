@@ -1,78 +1,92 @@
-const { google } = require("googleapis");
-
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  "https://developers.google.com/oauthplayground"
-);
-
-oauth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-});
-
-const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-
-function makeEmailBody(to, from, subject, text) {
-  const message = [
-    `To: ${to}`,
-    `From: ${from}`,
-    `Subject: ${subject}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: text/plain; charset=utf-8`,
-    ``,
-    text,
-  ].join("\n");
-
-  return Buffer.from(message)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
+const nodemailer = require("nodemailer");
 
 async function sendEmailToStudents(req, res) {
   try {
     const students = req.body.students;
 
     if (!students || students.length === 0) {
-      return res.status(400).json({ message: "Nenhum aluno informado" });
+      return res.status(400).json({
+        message: "Nenhum aluno informado"
+      });
     }
 
-    const erros = [];
+    // Configuração do Gmail
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // App Password
+      },
+    });
+
+    console.log(transporter);
 
     for (const student of students) {
       if (!student.email) continue;
 
-      try {
-        const raw = makeEmailBody(
-          student.email,
-          process.env.EMAIL_USER,
-          "Aviso importante",
-          `Olá ${student.nome}, este é um email automático.`
-        );
+      await transporter.sendMail({
+        from: `"Gestper" <${process.env.EMAIL_USER}>`,
+        to: student.email,
+        subject: "📢 Aviso Importante - Controle de Frequência",
 
-        await gmail.users.messages.send({
-          userId: "me",
-          requestBody: { raw },
-        });
+        text: `Olá, ${student.nome}!
 
-        console.log(`✅ Email enviado: ${student.email}`);
-      } catch (err) {
-        console.error(`❌ Falha: ${student.email} →`, err.message);
-        erros.push(student.email);
-      }
+Esperamos que você esteja bem.
+
+O sistema Gestper identificou, durante a análise das planilhas acadêmicas, que você possui um ou mais registros de ausência que merecem sua atenção.
+
+Este comunicado tem como objetivo mantê-lo informado sobre sua situação de frequência para que você possa acompanhar seu desempenho acadêmico e evitar possíveis prejuízos ao longo do período letivo.
+
+==================================================
+
+O QUE VOCÊ DEVE FAZER?
+
+✔ Consulte sua frequência com o professor responsável.
+
+✔ Verifique se existe alguma falta que possa ser justificada.
+
+✔ Caso identifique qualquer inconsistência, procure a coordenação pedagógica da instituição.
+
+✔ Continue acompanhando regularmente sua frequência e seu rendimento escolar.
+
+==================================================
+
+IMPORTANTE
+
+Este aviso possui caráter informativo e foi gerado automaticamente após a importação e processamento das planilhas acadêmicas pelo sistema Gestper.
+
+Caso sua situação já tenha sido regularizada ou exista alguma justificativa pendente de análise, desconsidere este comunicado.
+
+==================================================
+
+Data do envio: ${new Date().toLocaleDateString("pt-BR")}
+Horário do envio: ${new Date().toLocaleTimeString("pt-BR")}
+
+Atenciosamente,
+
+Equipe Gestper
+Sistema Inteligente de Gestão Escolar
+
+Este é um e-mail automático. Não é necessário respondê-lo.
+
+© ${new Date().getFullYear()} Gestper - Todos os direitos reservados.
+`
+      });
     }
 
-    if (erros.length > 0) {
-      return res.status(207).json({ message: "Alguns emails falharam", falhas: erros });
-    }
-
-    return res.status(200).json({ message: "Emails enviados com sucesso!" });
+    return res.status(200).json({
+      message: "Emails enviados com sucesso!"
+    });
 
   } catch (error) {
-    console.error("Erro geral:", error.message);
-    return res.status(500).json({ message: "Erro ao enviar emails", erro: error.message });
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Erro ao enviar emails"
+    });
   }
 }
 
-module.exports = { sendEmailToStudents };
+module.exports = {
+  sendEmailToStudents
+};
